@@ -7,11 +7,12 @@ import type { FormEvent } from 'react';
 interface ManualEntryProps {
   onAddSession: (values: ManualEntryValues) => { success: boolean; message: string };
   onToast: (message: string) => void;
+  inline?: boolean;
 }
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
-export const ManualEntry = ({ onAddSession, onToast }: ManualEntryProps) => {
+export const ManualEntry = ({ onAddSession, onToast, inline = false }: ManualEntryProps) => {
   const [values, setValues] = useState<ManualEntryValues>({
     date: today,
     timeIn: '08:00',
@@ -42,7 +43,7 @@ export const ManualEntry = ({ onAddSession, onToast }: ManualEntryProps) => {
   };
 
   return (
-    <section className="paper-panel mt-6 p-5 md:p-6">
+    <section className={inline ? 'mb-6' : 'paper-panel mt-6 p-5 md:p-6'}>
       <div className="mb-5">
         <p className="text-xs uppercase tracking-[0.35em] text-sepia-500">Manual entry</p>
         <h2 className="mt-1 font-heading text-2xl text-sepia-900">Add a session by hand</h2>

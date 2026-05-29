@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { format } from 'date-fns';
+import { format, parseISO, startOfWeek } from 'date-fns';
 import type { Session, TrackerMeta } from '../types';
 import { formatHours, getTotalHours } from './timeUtils';
 
@@ -54,14 +54,48 @@ export const downloadTextReport = (sessions: Session[], meta: TrackerMeta) => {
 
 export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta) => {
   const workbook = XLSX.utils.book_new();
-  const summarySheet = XLSX.utils.aoa_to_sheet([
+  const totalHours = getTotalHours(sessions);
+
+  // Aggregate by month
+  const monthly: Record<string, number> = {};
+  sessions.forEach((s) => {
+    const month = s.date.slice(0, 7); // yyyy-MM
+    monthly[month] = (monthly[month] || 0) + s.hours;
+  });
+
+  // Aggregate by week (week start date)
+  const weekly: Record<string, number> = {};
+  sessions.forEach((s) => {
+    const ws = format(startOfWeek(parseISO(s.timeInISO), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    weekly[ws] = (weekly[ws] || 0) + s.hours;
+  });
+
+  const summaryRows: any[] = [
     ['OJT Logbook Summary'],
     ['Name', meta.name || ''],
     ['School', meta.school || ''],
     ['Company', meta.company || ''],
     ['Required Hours', formatHours(meta.requiredHours)],
-    ['Total Hours', formatHours(getTotalHours(sessions))],
-  ]);
+    ['Total Hours', formatHours(totalHours)],
+    [],
+    ['Monthly Breakdown (Month, Hours)'],
+    ['Month', 'Hours'],
+  ];
+
+  Object.keys(monthly)
+    .sort()
+    .forEach((m) => {
+      summaryRows.push([m, formatHours(monthly[m])]);
+    });
+
+  summaryRows.push([], ['Weekly Breakdown (Week Start, Hours)'], ['Week Start', 'Hours']);
+  Object.keys(weekly)
+    .sort()
+    .forEach((w) => {
+      summaryRows.push([w, formatHours(weekly[w])]);
+    });
+
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
   const sessionSheet = XLSX.utils.json_to_sheet(buildRows(sessions));
 
   XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');

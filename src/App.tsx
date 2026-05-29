@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { ExportPage } from './components/ExportPage';
 import { Layout } from './components/Layout';
-import { ManualEntry } from './components/ManualEntry';
 import { SessionLog } from './components/SessionLog';
 import { SettingsPage } from './components/SettingsPage';
 import { Toast } from './components/Toast';
@@ -49,8 +48,6 @@ export const App = () => {
               sessions={tracker.sessions}
               onUpdateRemarks={tracker.updateRemarks}
               onDeleteSession={tracker.deleteSession}
-            />
-            <ManualEntry
               onAddSession={tracker.addManualSession}
               onToast={showToast}
             />
