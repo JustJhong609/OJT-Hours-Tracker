@@ -3,6 +3,7 @@
     "composite": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "types": ["node"],
     "allowSyntheticDefaultImports": true
   },
   "include": ["vite.config.ts"]
