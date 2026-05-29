@@ -11,6 +11,11 @@ OJT Hours Tracker is a Vite + React + TypeScript web app for logging on-the-job 
 - Export tools for Excel `.xlsx` and text-based DTR reports.
 - Settings page for trainee and company details plus required hours.
 - Antique parchment visual theme with embossed button styling and responsive mobile/desktop navigation.
+<img width="1542" height="865" alt="image" src="https://github.com/user-attachments/assets/7700ddad-66c4-4fe2-a4de-8ba6167b2bea" />
+<img width="1516" height="885" alt="image" src="https://github.com/user-attachments/assets/f3861f3e-3640-424a-8657-17a8c396e660" />
+<img width="1535" height="881" alt="image" src="https://github.com/user-attachments/assets/93c19305-803c-4767-b9e5-1a3785518389" />
+<img width="1566" height="737" alt="image" src="https://github.com/user-attachments/assets/c50b826e-b802-4646-837d-26b72eb24c0e" />
+
 
 ## Tech Stack
 
