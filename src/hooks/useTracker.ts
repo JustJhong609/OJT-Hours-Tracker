@@ -18,22 +18,6 @@ const defaultState: TrackerState = {
   clockInTime: null,
 };
 
-const createSession = (dateValue: string, timeInValue: string, timeOutValue: string, remarks = ''): Session => {
-  const timeInISO = toIsoDateTime(dateValue, timeInValue);
-  const timeOutISO = toIsoDateTime(dateValue, timeOutValue);
-
-  return {
-    id: crypto.randomUUID(),
-    date: formatDisplayDate(new Date(timeInISO)),
-    timeIn: formatDisplayTime(new Date(timeInISO)),
-    timeOut: formatDisplayTime(new Date(timeOutISO)),
-    timeInISO,
-    timeOutISO,
-    hours: calculateHours(timeInISO, timeOutISO),
-    remarks,
-  };
-};
-
 const loadState = (): TrackerState => {
   if (typeof window === 'undefined') {
     return defaultState;
