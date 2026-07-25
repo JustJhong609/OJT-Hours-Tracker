@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { format, parseISO, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import type { Session, TrackerMeta } from '../types';
 import { formatHours, getTotalHours } from './timeUtils';
 
@@ -65,26 +65,6 @@ export const getAmPmBreakdown = (session: Session): AmPmBreakdown => {
   };
 };
 
-const buildRows = (sessions: Session[], options?: ExportOptions) =>
-  sessions.map((session) => {
-    const amPm = getAmPmBreakdown(session);
-    const row: Record<string, string | number | undefined> = {
-      Date: session.date,
-      'AM Time In': amPm.amIn,
-      'AM Time Out': amPm.amOut,
-      'PM Time In': amPm.pmIn,
-      'PM Time Out': amPm.pmOut,
-    };
-    if (options?.includeBreaks) {
-      row['Break (Min)'] = session.breakMinutes || 0;
-    }
-    row.Hours = formatHours(session.hours);
-    if (!options || options.includeRemarks) {
-      row.Remarks = session.remarks || '';
-    }
-    return row;
-  });
-
 export const buildTextReport = (sessions: Session[], meta: TrackerMeta) => {
   const lines: string[] = [];
   const totalHours = getTotalHours(sessions);
@@ -127,60 +107,82 @@ export const downloadTextReport = (sessions: Session[], meta: TrackerMeta) => {
 export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta, options?: ExportOptions) => {
   const workbook = XLSX.utils.book_new();
   const totalHours = getTotalHours(sessions);
+  const hoursLeft = Math.max(meta.requiredHours - totalHours, 0);
 
-  const summaryRows: Array<Array<string | number>> = [
-    ['OJT Logbook Summary'],
+  const rows: Array<Array<string | number>> = [];
+
+  // 1. Trainee Profile Block
+  if (!options || options.includeProfile) {
+    rows.push(['OJT DAILY TIME RECORD (DTR)']);
+    rows.push(['Trainee Name:', meta.name || '—', '', 'Company / Agency:', meta.company || '—']);
+    rows.push(['School / University:', meta.school || '—', '', 'Supervisor:', meta.supervisor || '—']);
+    rows.push(['Required Hours:', `${formatHours(meta.requiredHours)} hrs`, '', 'Hours Rendered:', `${formatHours(totalHours)} hrs`]);
+    rows.push(['Hours Remaining:', `${formatHours(hoursLeft)} hrs`, '', 'Generated Date:', format(new Date(), 'yyyy-MM-dd hh:mm a')]);
+    rows.push([]);
+  }
+
+  // 2. DTR Header Row
+  const headerRow: string[] = ['Date', 'AM Time In', 'AM Time Out', 'PM Time In', 'PM Time Out', 'Hours'];
+  if (options?.includeBreaks) {
+    headerRow.push('Break (mins)');
+  }
+  if (!options || options.includeRemarks) {
+    headerRow.push('Remarks');
+  }
+  rows.push(headerRow);
+
+  // 3. DTR Session Log Rows
+  sessions.forEach((s) => {
+    const amPm = getAmPmBreakdown(s);
+    const row: Array<string | number> = [
+      s.date,
+      amPm.amIn,
+      amPm.amOut,
+      amPm.pmIn,
+      amPm.pmOut,
+      s.hours,
+    ];
+    if (options?.includeBreaks) {
+      row.push(s.breakMinutes ?? 0);
+    }
+    if (!options || options.includeRemarks) {
+      row.push(s.remarks || '');
+    }
+    rows.push(row);
+  });
+
+  // 4. Totals Summary Row
+  if (!options || options.includeSummaryTotals) {
+    const totalRow: Array<string | number> = [
+      'TOTAL',
+      '—',
+      '—',
+      '—',
+      '—',
+      Number(totalHours.toFixed(2)),
+    ];
+    if (options?.includeBreaks) {
+      totalRow.push('—');
+    }
+    if (!options || options.includeRemarks) {
+      totalRow.push('—');
+    }
+    rows.push(totalRow);
+  }
+
+  const dtrSheet = XLSX.utils.aoa_to_sheet(rows);
+
+  dtrSheet['!cols'] = [
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 10 },
+    ...(options?.includeBreaks ? [{ wch: 12 }] : []),
+    ...(!options || options.includeRemarks ? [{ wch: 25 }] : []),
   ];
 
-  if (!options || options.includeProfile) {
-    summaryRows.push(
-      ['Name', meta.name || ''],
-      ['School', meta.school || ''],
-      ['Company', meta.company || '']
-    );
-  }
-
-  summaryRows.push(
-    ['Required Hours', formatHours(meta.requiredHours)],
-    ['Total Hours Rendered', formatHours(totalHours)],
-    []
-  );
-
-  if (!options || options.includeSummaryTotals) {
-    // Aggregate by month
-    const monthly: Record<string, number> = {};
-    sessions.forEach((s) => {
-      const month = s.date.slice(0, 7); // yyyy-MM
-      monthly[month] = (monthly[month] || 0) + s.hours;
-    });
-
-    // Aggregate by week (week start date)
-    const weekly: Record<string, number> = {};
-    sessions.forEach((s) => {
-      const ws = format(startOfWeek(parseISO(s.timeInISO), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      weekly[ws] = (weekly[ws] || 0) + s.hours;
-    });
-
-    summaryRows.push(['Monthly Breakdown (Month, Hours)'], ['Month', 'Hours']);
-    Object.keys(monthly)
-      .sort()
-      .forEach((m) => {
-        summaryRows.push([m, formatHours(monthly[m])]);
-      });
-
-    summaryRows.push([], ['Weekly Breakdown (Week Start, Hours)'], ['Week Start', 'Hours']);
-    Object.keys(weekly)
-      .sort()
-      .forEach((w) => {
-        summaryRows.push([w, formatHours(weekly[w])]);
-      });
-  }
-
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
-  const sessionSheet = XLSX.utils.json_to_sheet(buildRows(sessions, options));
-
-  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-  XLSX.utils.book_append_sheet(workbook, sessionSheet, 'Sessions');
-
+  XLSX.utils.book_append_sheet(workbook, dtrSheet, 'DTR Logbook');
   XLSX.writeFile(workbook, `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
 };

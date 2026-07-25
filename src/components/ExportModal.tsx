@@ -61,6 +61,7 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
   }, [filterType, filterValue, sortedSessions]);
 
   const totalHours = useMemo(() => getTotalHours(filteredSessions), [filteredSessions]);
+  const hoursLeft = Math.max(meta.requiredHours - totalHours, 0);
 
   if (!isOpen) return null;
 
@@ -84,7 +85,7 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
               📊 Export to Excel (.xlsx) Preview & Options
             </h2>
             <p className="text-xs text-[var(--color-muted)]">
-              Includes Morning (AM) & Afternoon (PM) Time In / Time Out columns.
+              Live Preview 100% mirrors the downloaded Excel (.xlsx) Daily Time Record file.
             </p>
           </div>
           <button
@@ -202,15 +203,31 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
               Live Spreadsheet Preview ({filteredSessions.length} rows)
             </span>
 
-            <div className="flex-1 overflow-auto border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] p-2">
+            <div className="flex-1 overflow-auto border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] p-3 space-y-4">
+              {/* Profile Header Box (Mirroring Excel Sheet) */}
+              {options.includeProfile && (
+                <div className="border-b border-[var(--color-border)] pb-3 text-xs space-y-1">
+                  <h4 className="font-heading font-extrabold text-sm text-[var(--color-accent)]">OJT DAILY TIME RECORD (DTR)</h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[var(--color-muted)]">
+                    <div><strong className="text-[var(--color-text)]">Name:</strong> {meta.name || '—'}</div>
+                    <div><strong className="text-[var(--color-text)]">Company:</strong> {meta.company || '—'}</div>
+                    <div><strong className="text-[var(--color-text)]">School:</strong> {meta.school || '—'}</div>
+                    <div><strong className="text-[var(--color-text)]">Supervisor:</strong> {meta.supervisor || '—'}</div>
+                    <div><strong className="text-[var(--color-text)]">Required Hours:</strong> {formatHours(meta.requiredHours)} hrs</div>
+                    <div><strong className="text-[var(--color-text)]">Rendered:</strong> {formatHours(totalHours)} hrs (Remaining: {formatHours(hoursLeft)} hrs)</div>
+                  </div>
+                </div>
+              )}
+
+              {/* DTR Table */}
               <table className="w-full text-left text-xs whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[var(--color-border)] text-[var(--color-muted)]">
+                  <tr className="border-b border-[var(--color-border)] text-[var(--color-muted)] font-bold">
                     <th className="p-2">Date</th>
-                    <th className="p-2">AM In</th>
-                    <th className="p-2">AM Out</th>
-                    <th className="p-2">PM In</th>
-                    <th className="p-2">PM Out</th>
+                    <th className="p-2">AM Time In</th>
+                    <th className="p-2">AM Time Out</th>
+                    <th className="p-2">PM Time In</th>
+                    <th className="p-2">PM Time Out</th>
                     <th className="p-2">Hours</th>
                     {options.includeBreaks && <th className="p-2">Break</th>}
                     {options.includeRemarks && <th className="p-2">Remarks</th>}
