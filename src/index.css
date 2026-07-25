@@ -1,129 +1,162 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Courier+Prime:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  background-color: #f5efe0;
-}
+@layer base {
+  :root {
+    --color-bg: #0B1120;
+    --color-surface: #131B2E;
+    --color-surface2: #1B2540;
+    --color-border: #263352;
+    --color-text: #E2E8F0;
+    --color-muted: #8B9BC2;
+    --color-accent: #6366F1;
+    --color-accent2: #3B82F6;
+    --color-success: #34D399;
+    --color-danger: #F87171;
+    --color-shadow: rgba(0,0,0,0.45);
+  }
 
-html,
-body,
-#root {
-  min-height: 100%;
-}
+  html, body, #root {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
-body {
-  margin: 0;
-  color: #3b2a14;
-  font-family: 'Courier Prime', 'IM Fell English', serif;
-  background-color: #f5efe0;
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(168, 128, 64, 0.12) 0,
-      rgba(168, 128, 64, 0.12) 1px,
-      transparent 1px,
-      transparent 34px
-    ),
-    radial-gradient(circle at top, rgba(184, 115, 51, 0.12), transparent 40%),
-    linear-gradient(180deg, #f5efe0 0%, #efe2c7 100%);
-}
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.25s ease, color 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-a,
-button,
-input,
-textarea {
-  font: inherit;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-::selection {
-  background: rgba(184, 115, 51, 0.24);
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
 }
 
 @layer components {
-  .paper-panel {
-    @apply rounded-[1.75rem] border border-parchment-border bg-parchment-card shadow-paper;
+  /* Card Container */
+  .modern-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 20px -2px var(--color-shadow);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
-  .paper-preview {
-    background-color: #f5efe0;
-    background-image:
-      repeating-linear-gradient(
-        to bottom,
-        rgba(164, 123, 72, 0.12) 0,
-        rgba(164, 123, 72, 0.12) 1px,
-        transparent 1px,
-        transparent 28px
-      ),
-      linear-gradient(180deg, #f8f0dd 0%, #efe5cb 100%);
+  /* Glass Panel */
+  .glass-panel {
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
   }
 
-  .metric-card {
-    @apply rounded-2xl border border-parchment-border bg-parchment-surface p-4 shadow-[inset_0_1px_0_rgba(255,245,220,0.7)];
+  /* Form Fields */
+  .modern-input {
+    width: 100%;
+    border-radius: 0.875rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface2);
+    color: var(--color-text);
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+    outline: none;
+    transition: all 0.2s ease;
   }
 
-  .form-field {
-    @apply w-full rounded-xl border border-parchment-border bg-parchment-surface px-4 py-3 text-sepia-900 outline-none transition focus:border-parchment-emphasis;
+  .modern-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
   }
 
-  .tab-chip {
-    @apply rounded-xl border border-parchment-border bg-parchment-surface px-3 py-2 text-sm font-bold text-sepia-700 transition;
-    box-shadow: 0 2px 0 #a07840, inset 0 1px 0 #fff5dc;
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+    background-color: var(--color-accent);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    min-height: 48px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
   }
 
-  .tab-chip-active {
-    box-shadow: inset 0 3px 6px rgba(100, 70, 20, 0.28);
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
     transform: translateY(1px);
-    color: #3b2a14;
-    border-color: #a07840;
   }
 
-  .ink-stamp {
-    @apply inline-flex items-center justify-center rounded-full border border-sepia-700 px-3 py-1 text-xs font-bold uppercase tracking-[0.3em] text-sepia-700;
-    background: rgba(122, 92, 56, 0.1);
-    box-shadow: inset 0 1px 0 rgba(255, 245, 220, 0.8);
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+    background-color: var(--color-surface2);
+    color: var(--color-text);
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+    padding: 0.75rem 1.25rem;
+    min-height: 48px;
+    transition: all 0.2s ease;
+    cursor: pointer;
   }
 
-  .btn-emboss,
-  .btn-emboss-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-bold transition duration-100 ease-out;
-    box-shadow: 0 3px 0 #a07840, inset 0 1px 0 #fff5dc;
-    color: #5c3d1e;
-    background: #e8d9b8;
-    border-color: #b89660;
+  .btn-secondary:hover {
+    border-color: var(--color-accent);
   }
 
-  .btn-emboss:active,
-  .btn-emboss-danger:active {
-    transform: translateY(2px);
-    box-shadow: inset 0 3px 6px rgba(100, 70, 20, 0.3);
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+    background-color: var(--color-danger);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    min-height: 48px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
   }
 
-  .btn-emboss-danger {
-    background: #d4a882;
-    border-color: #a06040;
-    box-shadow: 0 3px 0 #804020, inset 0 1px 0 #f5c8a0;
-    color: #4a1c0a;
-  }
-
-  .btn-emboss-large {
-    @apply px-8 py-4 text-base uppercase tracking-[0.14em];
-    min-width: 14rem;
+  .btn-danger:hover {
+    filter: brightness(0.9);
   }
 }
 
-input[type='date'],
-input[type='time'] {
-  color-scheme: light;
+/* Touch Friendly Utilities */
+.touch-target {
+  min-width: 48px;
+  min-height: 48px;
 }
 
-textarea {
-  resize: vertical;
+/* Print Rules for DTR Reports */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
 }

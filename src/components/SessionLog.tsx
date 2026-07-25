@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
-import type { Session, ManualEntryValues } from '../types';
-import { ManualEntry } from './ManualEntry';
+import type { Session } from '../types';
 import { formatHours, getTotalHours } from '../utils/timeUtils';
 import { parseISO, startOfWeek, format } from 'date-fns';
 
@@ -9,12 +8,10 @@ interface SessionLogProps {
   sessions: Session[];
   onUpdateRemarks: (sessionId: string, remarks: string) => void;
   onDeleteSession: (sessionId: string) => void;
-  onAddSession?: (values: ManualEntryValues) => { success: boolean; message: string };
-  onToast?: (message: string) => void;
 }
 
-export const SessionLog = ({ sessions, onUpdateRemarks, onDeleteSession, onAddSession, onToast }: SessionLogProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+export const SessionLog = ({ sessions, onUpdateRemarks, onDeleteSession }: SessionLogProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'this_week' | 'this_month' | 'month' | 'week'>('all');
   const [filterValue, setFilterValue] = useState<string>('all');
 
@@ -35,145 +32,162 @@ export const SessionLog = ({ sessions, onUpdateRemarks, onDeleteSession, onAddSe
   }, [sortedSessions]);
 
   const filteredSessions = useMemo(() => {
-    if (filterType === 'all') return sortedSessions;
+    let result = sortedSessions;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (s) => s.date.toLowerCase().includes(q) || s.remarks.toLowerCase().includes(q) || s.timeIn.toLowerCase().includes(q)
+      );
+    }
+
     if (filterType === 'this_week') {
       const now = new Date();
-      return sortedSessions.filter((s) => {
+      result = result.filter((s) => {
         const sessionDate = parseISO(s.timeInISO);
         return startOfWeek(sessionDate, { weekStartsOn: 1 }).getTime() === startOfWeek(now, { weekStartsOn: 1 }).getTime();
       });
-    }
-    if (filterType === 'this_month') {
+    } else if (filterType === 'this_month') {
       const now = new Date();
-      return sortedSessions.filter((s) => parseISO(s.timeInISO).getMonth() === now.getMonth() && parseISO(s.timeInISO).getFullYear() === now.getFullYear());
-    }
-    if (filterType === 'month') {
-      const month = filterValue; // yyyy-MM
-      return sortedSessions.filter((s) => s.date.startsWith(month));
-    }
-    if (filterType === 'week') {
-      const weekStart = filterValue; // yyyy-MM-dd
-      return sortedSessions.filter((s) => format(startOfWeek(parseISO(s.timeInISO), { weekStartsOn: 1 }), 'yyyy-MM-dd') === weekStart);
+      result = result.filter((s) => parseISO(s.timeInISO).getMonth() === now.getMonth() && parseISO(s.timeInISO).getFullYear() === now.getFullYear());
+    } else if (filterType === 'month' && filterValue !== 'all') {
+      result = result.filter((s) => s.date.startsWith(filterValue));
+    } else if (filterType === 'week' && filterValue !== 'all') {
+      result = result.filter((s) => format(startOfWeek(parseISO(s.timeInISO), { weekStartsOn: 1 }), 'yyyy-MM-dd') === filterValue);
     }
 
-    return sortedSessions;
-  }, [filterType, filterValue, sortedSessions]);
+    return result;
+  }, [filterType, filterValue, searchQuery, sortedSessions]);
 
   const totalHours = useMemo(() => getTotalHours(filteredSessions), [filteredSessions]);
 
   return (
-    <section className="paper-panel p-5 md:p-6">
-      <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-sepia-500">Session log</p>
-          <h2 className="mt-1 font-heading text-3xl text-sepia-900">Logged hours and remarks</h2>
-          <div className="mt-2 text-sm text-sepia-700">{filteredSessions.length} sessions shown — {formatHours(totalHours)} hours</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-sepia-700">{sortedSessions.length.toString()} sessions stored</div>
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="btn-ghost"
-          >
-            {collapsed ? 'Expand' : 'Collapse'}
-          </button>
-        </div>
-      </div>
-
-      {onAddSession ? (
-        <div className="mb-4">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-sepia-700">Filter:</label>
-              <select value={filterType} onChange={(e) => { setFilterType(e.target.value as any); setFilterValue('all'); }} className="form-field">
-                <option value="all">All</option>
-                <option value="this_week">This week</option>
-                <option value="this_month">This month</option>
-                <option value="month">Specific month</option>
-                <option value="week">Specific week</option>
-              </select>
-
-              {filterType === 'month' ? (
-                <select value={filterValue} onChange={(e) => setFilterValue(e.target.value)} className="form-field">
-                  <option value="all">Select month</option>
-                  {monthOptions.map((m) => (
-                    <option key={m} value={m}>
-                      {format(new Date(`${m}-01`), 'MMMM yyyy')}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-
-              {filterType === 'week' ? (
-                <select value={filterValue} onChange={(e) => setFilterValue(e.target.value)} className="form-field">
-                  <option value="all">Select week</option>
-                  {weekOptions.map((w) => (
-                    <option key={w} value={w}>
-                      Week of {format(new Date(w), 'MMM d, yyyy')}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-            </div>
-            <div className="text-sm text-sepia-700">Summary: {formatHours(totalHours)} hours for selected range</div>
+    <section className="space-y-6">
+      <div className="modern-card p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Session Log</span>
+            <h2 className="font-heading text-2xl font-extrabold text-[var(--text-primary)]">Training Session History</h2>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Showing {filteredSessions.length} of {sessions.length} sessions • Total: {formatHours(totalHours)} hours
+            </p>
           </div>
-          {!collapsed ? (
-            <ManualEntry onAddSession={onAddSession} onToast={onToast ?? (() => {})} inline />
-          ) : null}
-        </div>
-      ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-parchment-border bg-parchment-surface">
-        <div className="hidden grid-cols-[1.1fr_1fr_1fr_0.7fr_1.5fr_0.6fr] border-b border-parchment-border bg-parchment-card px-4 py-3 text-xs uppercase tracking-[0.25em] text-sepia-500 md:grid">
-          <span>Date</span>
-          <span>Time In</span>
-          <span>Time Out</span>
-          <span>Hours</span>
-          <span>Remarks</span>
-          <span>Delete</span>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search Input */}
+            <div className="relative min-w-[200px] flex-1 sm:flex-none">
+              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search remarks or dates..."
+                className="modern-input pl-9 text-xs py-2.5"
+              />
+            </div>
+
+            {/* Filter Dropdown */}
+            <select
+              value={filterType}
+              onChange={(e) => {
+                setFilterType(e.target.value as 'all' | 'this_week' | 'this_month' | 'month' | 'week');
+                setFilterValue('all');
+              }}
+              className="modern-input text-xs py-2.5 w-auto"
+            >
+              <option value="all">All Sessions</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="month">By Month</option>
+              <option value="week">By Week</option>
+            </select>
+
+            {filterType === 'month' && (
+              <select value={filterValue} onChange={(e) => setFilterValue(e.target.value)} className="modern-input text-xs py-2.5 w-auto">
+                <option value="all">Select Month</option>
+                {monthOptions.map((m) => (
+                  <option key={m} value={m}>
+                    {format(new Date(`${m}-01`), 'MMMM yyyy')}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {filterType === 'week' && (
+              <select value={filterValue} onChange={(e) => setFilterValue(e.target.value)} className="modern-input text-xs py-2.5 w-auto">
+                <option value="all">Select Week</option>
+                {weekOptions.map((w) => (
+                  <option key={w} value={w}>
+                    Week of {format(new Date(w), 'MMM d, yyyy')}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
 
-        <div className="divide-y divide-parchment-border">
+        {/* Sessions Feed */}
+        <div className="mt-6 space-y-3">
           <AnimatePresence initial={false}>
-            {sortedSessions.length === 0 ? (
-              <div className="px-4 py-10 text-center text-sepia-700">No sessions logged yet.</div>
+            {filteredSessions.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[var(--border-color)] p-8 text-center text-sm text-[var(--text-secondary)]">
+                No session entries found.
+              </div>
             ) : (
-              sortedSessions.map((session) => (
+              filteredSessions.map((session) => (
                 <motion.div
                   key={session.id}
                   layout
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -24 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                  className="grid gap-3 px-4 py-4 md:grid-cols-[1.1fr_1fr_1fr_0.7fr_1.5fr_0.6fr] md:items-start"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="modern-card p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:border-indigo-500/50 transition-colors"
                 >
-                  <div className="font-bold text-sepia-900 md:font-normal">{session.date}</div>
-                  <div className="text-sepia-700">{session.timeIn}</div>
-                  <div className="text-sepia-700">{session.timeOut}</div>
-                  <div className="font-bold text-sepia-900">{formatHours(session.hours)}</div>
-                  <div>
-                    <label className="sr-only" htmlFor={`remarks-${session.id}`}>
-                      Remarks for {session.date}
-                    </label>
-                    <textarea
-                      id={`remarks-${session.id}`}
-                      value={session.remarks}
-                      onChange={(event) => onUpdateRemarks(session.id, event.target.value)}
-                      placeholder="Add remarks..."
-                      className="min-h-20 w-full rounded-xl border border-parchment-border bg-parchment-page px-3 py-2 text-sm text-sepia-900 outline-none transition focus:border-parchment-emphasis"
-                    />
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm">
+                      {session.hours}h
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-heading font-bold text-base text-[var(--text-primary)]">
+                          {session.date}
+                        </span>
+                        {session.breakMinutes && session.breakMinutes > 0 ? (
+                          <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 text-[10px] font-bold">
+                            -1h Lunch Break
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">
+                        🕒 {session.timeIn} → {session.timeOut}
+                      </p>
+                      <input
+                        type="text"
+                        value={session.remarks}
+                        onChange={(e) => onUpdateRemarks(session.id, e.target.value)}
+                        placeholder="Add shift remarks/tasks performed..."
+                        className="modern-input text-xs py-1.5 px-3 mt-1.5 max-w-md"
+                      />
+                    </div>
                   </div>
-                  <div className="flex md:justify-end">
-                    <motion.button
+
+                  <div className="flex items-center justify-end sm:flex-col sm:items-end gap-2 border-t border-[var(--border-color)] pt-3 sm:border-0 sm:pt-0">
+                    <span className="font-heading font-extrabold text-lg text-indigo-600 dark:text-indigo-400">
+                      {formatHours(session.hours)} hrs
+                    </span>
+                    <button
                       type="button"
-                      whileTap={{ scale: 0.98, y: 2 }}
-                      onClick={() => onDeleteSession(session.id)}
-                      className="btn-emboss-danger"
+                      onClick={() => {
+                        if (window.confirm(`Delete session log for ${session.date}?`)) {
+                          onDeleteSession(session.id);
+                        }
+                      }}
+                      className="btn-danger py-1.5 px-3 text-xs min-h-[36px]"
                     >
                       Delete
-                    </motion.button>
+                    </button>
                   </div>
                 </motion.div>
               ))
