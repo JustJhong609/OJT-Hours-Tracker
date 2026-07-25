@@ -15,12 +15,10 @@ export const Footer = () => {
         </span>
         <span>•</span>
         <a
-          href="https://buymeacoffee.com/justjhong609"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 transition hover:scale-105"
+          href="mailto:princejhongjhong@gmail.com"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-1 text-xs font-bold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
         >
-          ☕ Buy me a coffee (Support me)
+          ✉️ Need a website or app? Contact me thru email: <span className="underline font-bold text-[var(--color-accent)]">princejhongjhong@gmail.com</span>
         </a>
       </div>
 
