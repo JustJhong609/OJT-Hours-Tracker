@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import type { TrackerTab } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { Footer } from './Footer';
 
 interface LayoutProps {
   activeTab: TrackerTab;
@@ -109,6 +110,8 @@ export const Layout = ({
           </header>
 
           <main className="flex-1 px-4 pt-5 md:px-8">{children}</main>
+
+          <Footer />
         </div>
       </div>
 

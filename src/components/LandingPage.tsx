@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { themes, type ThemeKey } from '../styles/themes';
+import { Footer } from './Footer';
 
 interface LandingPageProps {
   onOpenAuth: (tab: 'login' | 'register') => void;
@@ -114,10 +115,7 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[var(--color-border)] py-8 text-center text-xs text-[var(--color-muted)]">
-        OJT Hours Tracker • Powered by Dexie.js & IndexedDB • 100% Offline
-      </footer>
+      <Footer />
     </div>
   );
 };
