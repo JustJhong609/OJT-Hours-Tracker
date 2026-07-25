@@ -52,13 +52,13 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
         </div>
 
         {/* 5 Theme Live Selector Showcase */}
-        <div className="modern-card p-6 sm:p-8 space-y-4 text-center">
-          <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">Customize Your Experience</span>
-          <h2 className="font-heading text-2xl font-extrabold text-[var(--color-text)]">Choose From 5 Beautiful Themes</h2>
-          <p className="text-xs text-[var(--color-muted)] max-w-xl mx-auto">
+        <div className="modern-card p-4 sm:p-6 space-y-3 sm:space-y-4 text-center">
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">Customize Your Experience</span>
+          <h2 className="font-heading text-lg sm:text-2xl font-extrabold text-[var(--color-text)]">Choose From 5 Beautiful Themes</h2>
+          <p className="text-xs text-[var(--color-muted)] max-w-xl mx-auto hidden sm:block">
             Switch themes instantly anytime. All color palettes are tuned for high readability and aesthetics.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <div className="flex items-center gap-2 overflow-x-auto snap-x py-1 px-0.5 no-scrollbar sm:justify-center">
             {themeKeys.map((key) => {
               const active = currentTheme === key;
               const t = themes[key];
@@ -67,13 +67,13 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
                   key={key}
                   type="button"
                   onClick={() => setTheme(key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl border transition ${
+                  className={`snap-start shrink-0 whitespace-nowrap flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl border transition ${
                     active
                       ? 'border-[var(--color-accent)] bg-[var(--color-surface2)] text-[var(--color-text)] shadow-md scale-105'
                       : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-accent)]'
                   }`}
                 >
-                  <span className="h-3.5 w-3.5 rounded-full border border-black/20" style={{ backgroundColor: t.colors.accent }} />
+                  <span className="h-3 w-3 rounded-full border border-black/20" style={{ backgroundColor: t.colors.accent }} />
                   <span>{t.name}</span>
                 </button>
               );
