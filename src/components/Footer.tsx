@@ -8,17 +8,19 @@ export const Footer = () => {
             href="https://github.com/JustJhong609"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold text-[var(--color-accent)] underline hover:opacity-80"
+            className="font-bold text-[var(--color-accent)] hover:underline"
           >
-            JustJhong609
+            Jhong Emata
           </a>
         </span>
         <span>•</span>
         <a
-          href="mailto:princejhongjhong@gmail.com"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-1 text-xs font-bold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          href="https://github.com/JustJhong609"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-1 text-xs font-bold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] hover:scale-105"
         >
-          ✉️ Need a website or app? Contact me thru email: <span className="underline font-bold text-[var(--color-accent)]">princejhongjhong@gmail.com</span>
+          💻 Need a website or app? Contact me on GitHub
         </a>
       </div>
 
