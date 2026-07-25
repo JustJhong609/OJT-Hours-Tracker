@@ -13,6 +13,7 @@ interface AuthContextType {
 }
 
 const AUTH_USER_KEY = 'ojt_auth_user_session_v1';
+const MANUAL_LOGOUT_KEY = 'ojt_user_manually_logged_out_v1';
 const THEME_KEY = 'ojt_app_theme_v1';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
     if (typeof window === 'undefined') return null;
+    const isManuallyLoggedOut = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+    if (isManuallyLoggedOut) return null;
+
     const saved = localStorage.getItem(AUTH_USER_KEY);
     if (!saved) return null;
     try {
@@ -37,6 +41,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       : 'sleekDark';
   });
 
+  // Auto-restore persistent session on app start unless user explicitly clicked Logout
+  useEffect(() => {
+    const restorePersistentSession = async () => {
+      if (currentUser) return;
+
+      const isManuallyLoggedOut = localStorage.getItem(MANUAL_LOGOUT_KEY) === 'true';
+      if (isManuallyLoggedOut) return;
+
+      // 1. Try restoring from localStorage
+      const saved = localStorage.getItem(AUTH_USER_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as AuthUser;
+          if (parsed && parsed.id) {
+            setCurrentUser(parsed);
+            return;
+          }
+        } catch {
+          // ignore error
+        }
+      }
+
+      // 2. Fallback restoration from Dexie IndexedDB (restores session if Webview cleared localStorage)
+      try {
+        const users = await db.users.toArray();
+        if (users.length === 1) {
+          const u = users[0];
+          const authUser: AuthUser = { id: u.id!, username: u.username, name: u.name };
+          setCurrentUser(authUser);
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(authUser));
+        }
+      } catch {
+        // ignore error
+      }
+    };
+
+    restorePersistentSession();
+  }, [currentUser]);
+
   useEffect(() => {
     applyThemeToDocument(currentTheme);
     localStorage.setItem(THEME_KEY, currentTheme);
@@ -45,8 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem(AUTH_USER_KEY);
+      localStorage.removeItem(MANUAL_LOGOUT_KEY);
     }
   }, [currentUser]);
 
@@ -75,6 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: user.name,
     };
 
+    localStorage.removeItem(MANUAL_LOGOUT_KEY);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(authUser));
     setCurrentUser(authUser);
     return { success: true, message: `Welcome back, ${user.name || user.username}!` };
   };
@@ -117,6 +161,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    localStorage.setItem(MANUAL_LOGOUT_KEY, 'true');
+    localStorage.removeItem(AUTH_USER_KEY);
     setCurrentUser(null);
   };
 
