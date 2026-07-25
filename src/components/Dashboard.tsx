@@ -85,41 +85,41 @@ export const Dashboard = ({
           <div className="flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-8">
             {/* SVG Circular Progress Ring */}
             <div className="relative flex items-center justify-center">
-              <svg className="h-44 w-44 transform -rotate-90">
+              <svg className="h-40 w-40 sm:h-44 sm:w-44 transform -rotate-90">
                 <circle
                   cx="88"
                   cy="88"
                   r={ringRadius}
-                  className="stroke-[var(--border-color)] fill-none stroke-[10]"
+                  className="stroke-[var(--color-border)] fill-none stroke-[10]"
                 />
                 <circle
                   cx="88"
                   cy="88"
                   r={ringRadius}
-                  className="stroke-indigo-600 dark:stroke-indigo-500 fill-none stroke-[10] transition-all duration-1000 ease-out"
+                  className="stroke-[var(--color-accent)] fill-none stroke-[10] transition-all duration-1000 ease-out"
                   strokeDasharray={ringCircumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="font-heading text-3xl font-extrabold text-[var(--text-primary)]">
+                <span className="font-heading text-2xl sm:text-3xl font-extrabold text-[var(--color-text)]">
                   {progressPercent.toFixed(1)}%
                 </span>
-                <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                <span className="text-[10px] sm:text-xs font-medium text-[var(--color-muted)] uppercase tracking-wider">
                   Completed
                 </span>
               </div>
             </div>
 
             <div className="space-y-2 mt-4 lg:mt-0">
-              <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/15 px-3 py-1 text-xs font-bold text-[var(--color-accent)]">
                 {meta.name ? meta.name : 'Trainee Profile'} • {meta.company ? meta.company : 'OJT Tracker'}
               </span>
-              <h2 className="font-heading text-3xl font-extrabold text-[var(--text-primary)] md:text-4xl">
+              <h2 className="font-heading text-2xl sm:text-4xl font-extrabold text-[var(--color-text)]">
                 {formatHours(totalHours)} / {meta.requiredHours} Hours
               </h2>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-xs sm:text-sm text-[var(--color-muted)]">
                 {clockedIn
                   ? `Active Shift started at ${clockInTime ? format(new Date(clockInTime), 'h:mm a') : '—'}`
                   : todayHours > 0
@@ -130,8 +130,8 @@ export const Dashboard = ({
           </div>
 
           {/* Clock In/Out Live Control Widget */}
-          <div className="flex flex-col items-center rounded-2xl border border-[var(--border-color)] bg-[var(--bg-main)] p-6 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">
+          <div className="flex flex-col items-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface2)] p-6 shadow-sm w-full lg:w-auto">
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-muted)]">
               {clockedIn ? 'Shift Elapsed Time' : 'Live Clock Action'}
             </span>
 
@@ -142,7 +142,7 @@ export const Dashboard = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 4 }}
                 className={`mt-2 font-mono text-3xl font-extrabold tracking-widest ${
-                  clockedIn ? 'text-emerald-600 dark:text-emerald-400 animate-pulse' : 'text-[var(--text-primary)]'
+                  clockedIn ? 'text-[var(--color-success)] animate-pulse' : 'text-[var(--color-text)]'
                 }`}
               >
                 {formatElapsedTime(seconds)}
@@ -154,7 +154,7 @@ export const Dashboard = ({
               whileTap={{ scale: 0.96 }}
               onClick={clockedIn ? onClockOut : onClockIn}
               className={`mt-5 w-full btn-primary text-base font-bold py-3.5 shadow-glow touch-target ${
-                clockedIn ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                clockedIn ? 'bg-[var(--color-danger)] text-white' : 'bg-[var(--color-success)] text-white'
               }`}
             >
               {clockedIn ? 'Clock Out Shift' : 'Clock In Now'}
@@ -167,9 +167,9 @@ export const Dashboard = ({
                 type="checkbox"
                 checked={meta.autoBreak ?? true}
                 onChange={(e) => onSaveMeta({ autoBreak: e.target.checked })}
-                className="h-4 w-4 rounded border-[var(--border-color)] text-indigo-600 focus:ring-indigo-500"
+                className="h-4 w-4 rounded border-[var(--color-border)] text-indigo-600 focus:ring-indigo-500"
               />
-              <label htmlFor="autoBreakCheck" className="text-xs text-[var(--text-secondary)] font-medium cursor-pointer">
+              <label htmlFor="autoBreakCheck" className="text-xs text-[var(--color-muted)] font-medium cursor-pointer">
                 Auto 1hr lunch break deduction (shifts ≥ 5h)
               </label>
             </div>
@@ -178,38 +178,38 @@ export const Dashboard = ({
       </div>
 
       {/* Metrics Grid */}
-      <motion.div variants={container} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={container} initial="hidden" animate="show" className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric) => (
-          <motion.div key={metric.label} variants={item} className="modern-card p-5">
+          <motion.div key={metric.label} variants={item} className="modern-card p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[var(--color-muted)] truncate">
                 {metric.label}
               </span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-[var(--color-accent)]/15 text-[var(--color-accent)] shrink-0">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d={metric.icon} />
                 </svg>
               </div>
             </div>
-            <p className="mt-4 font-heading text-3xl font-extrabold text-[var(--text-primary)]">{metric.value}</p>
+            <p className="mt-3 sm:mt-4 font-heading text-2xl sm:text-3xl font-extrabold text-[var(--color-text)] truncate">{metric.value}</p>
           </motion.div>
         ))}
       </motion.div>
 
       {/* Estimated Completion Projection Card */}
-      <div className="modern-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white font-bold">
+      <div className="modern-card p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-accent)] text-white font-bold shrink-0">
             🎯
           </div>
           <div>
-            <h3 className="font-heading text-lg font-bold text-[var(--text-primary)]">Projected Target Completion</h3>
-            <p className="text-xs text-[var(--text-secondary)]">Based on your daily average of {formatHours(averageHours)} hours</p>
+            <h3 className="font-heading text-base sm:text-lg font-bold text-[var(--color-text)]">Projected Target Completion</h3>
+            <p className="text-xs text-[var(--color-muted)]">Based on your daily average of {formatHours(averageHours)} hours</p>
           </div>
         </div>
-        <div className="text-right">
-          <span className="text-xs font-semibold uppercase text-[var(--text-secondary)]">Estimated Finish Date</span>
-          <p className="font-heading text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{projectedCompletionDate}</p>
+        <div className="text-center sm:text-right">
+          <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Estimated Finish Date</span>
+          <p className="font-heading text-lg sm:text-xl font-extrabold text-[var(--color-accent)]">{projectedCompletionDate}</p>
         </div>
       </div>
     </section>

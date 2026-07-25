@@ -77,27 +77,27 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="modern-card w-full max-w-5xl p-6 space-y-6 max-h-[90vh] overflow-hidden flex flex-col"
+        className="modern-card w-full max-w-5xl p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[92vh] overflow-y-auto md:overflow-hidden flex flex-col"
       >
-        <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
           <div>
-            <h2 className="font-heading text-xl font-extrabold text-[var(--color-text)]">
+            <h2 className="font-heading text-lg sm:text-xl font-extrabold text-[var(--color-text)]">
               📊 Export to Excel (.xlsx) Preview & Options
             </h2>
-            <p className="text-xs text-[var(--color-muted)]">
+            <p className="text-[11px] sm:text-xs text-[var(--color-muted)]">
               Live Preview 100% mirrors the downloaded Excel (.xlsx) Daily Time Record file.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-[var(--color-muted)] hover:text-[var(--color-text)] text-lg"
+            className="text-[var(--color-muted)] hover:text-[var(--color-text)] text-lg px-2"
           >
             ✕
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[280px_1fr] flex-1 overflow-hidden min-h-0">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-[280px_1fr] flex-1 md:overflow-hidden min-h-0">
           {/* Left Checklist & Filters Panel */}
           <div className="space-y-4 overflow-y-auto pr-2">
             <div className="space-y-2">

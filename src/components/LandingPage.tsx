@@ -52,13 +52,33 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
         </div>
 
         {/* 5 Theme Live Selector Showcase */}
-        <div className="modern-card p-4 sm:p-6 space-y-3 sm:space-y-4 text-center">
+        <div className="modern-card p-4 sm:p-6 space-y-3 sm:space-y-4 text-center max-w-2xl mx-auto w-full">
           <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">Customize Your Experience</span>
-          <h2 className="font-heading text-lg sm:text-2xl font-extrabold text-[var(--color-text)]">Choose From 5 Beautiful Themes</h2>
+          <h2 className="font-heading text-lg sm:text-2xl font-extrabold text-[var(--color-text)]">Choose From 5 Themes</h2>
           <p className="text-xs text-[var(--color-muted)] max-w-xl mx-auto hidden sm:block">
             Switch themes instantly anytime. All color palettes are tuned for high readability and aesthetics.
           </p>
-          <div className="flex items-center gap-2 overflow-x-auto snap-x py-1 px-0.5 no-scrollbar sm:justify-center">
+
+          {/* Mobile Theme Select Dropdown (< 640px) */}
+          <div className="sm:hidden text-left">
+            <label className="block text-[10px] font-bold uppercase text-[var(--color-muted)] mb-1">
+              Select Theme Palette
+            </label>
+            <select
+              value={currentTheme}
+              onChange={(e) => setTheme(e.target.value as ThemeKey)}
+              className="modern-input text-xs font-bold"
+            >
+              {themeKeys.map((key) => (
+                <option key={key} value={key}>
+                  🎨 {themes[key].name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop Grid Swatches (>= 640px) */}
+          <div className="hidden sm:grid sm:grid-cols-5 gap-2 pt-1">
             {themeKeys.map((key) => {
               const active = currentTheme === key;
               const t = themes[key];
@@ -67,14 +87,14 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
                   key={key}
                   type="button"
                   onClick={() => setTheme(key)}
-                  className={`snap-start shrink-0 whitespace-nowrap flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl border transition ${
+                  className={`flex flex-col items-center justify-center gap-1.5 p-2.5 text-xs font-bold rounded-xl border transition ${
                     active
                       ? 'border-[var(--color-accent)] bg-[var(--color-surface2)] text-[var(--color-text)] shadow-md scale-105'
                       : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-accent)]'
                   }`}
                 >
-                  <span className="h-3 w-3 rounded-full border border-black/20" style={{ backgroundColor: t.colors.accent }} />
-                  <span>{t.name}</span>
+                  <span className="h-3.5 w-3.5 rounded-full border border-black/20" style={{ backgroundColor: t.colors.accent }} />
+                  <span className="truncate w-full text-center text-[11px]">{t.name}</span>
                 </button>
               );
             })}
