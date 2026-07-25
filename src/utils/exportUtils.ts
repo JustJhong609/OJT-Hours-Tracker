@@ -17,32 +17,57 @@ export interface AmPmBreakdown {
   pmOut: string;
 }
 
-export const getAmPmBreakdown = (session: Session): AmPmBreakdown => {
-  const [inH, inM] = session.timeIn.split(':').map(Number);
-  const [outH, outM] = session.timeOut.split(':').map(Number);
+/**
+ * Safely parses any time string (e.g. "08:00", "08:00 AM", "8:00:00", "5:30 PM")
+ * into numeric 24-hour hours and minutes, eliminating NaN errors.
+ */
+export const parseTimeTo24H = (timeStr: string): { h: number; m: number } => {
+  if (!timeStr) return { h: 0, m: 0 };
+  const clean = timeStr.trim().toUpperCase();
+  const isPM = clean.includes('PM');
+  const isAM = clean.includes('AM');
 
-  const formatTimeStr = (h: number, m: number) => {
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayH = h % 12 === 0 ? 12 : h % 12;
-    const displayM = m < 10 ? `0${m}` : `${m}`;
-    return `${displayH < 10 ? '0' + displayH : displayH}:${displayM} ${period}`;
-  };
+  // Strip AM/PM letters and split digits
+  const rawNumbers = clean.replace(/[A-Z]/g, '').trim().split(':');
+  let h = parseInt(rawNumbers[0] || '0', 10);
+  let m = parseInt(rawNumbers[1] || '0', 10);
+
+  if (isNaN(h)) h = 0;
+  if (isNaN(m)) m = 0;
+
+  if (isPM && h < 12) h += 12;
+  if (isAM && h === 12) h = 0;
+
+  return { h, m };
+};
+
+export const formatTime12H = (h: number, m: number): string => {
+  const period = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 === 0 ? 12 : h % 12;
+  const hStr = displayH < 10 ? `0${displayH}` : `${displayH}`;
+  const mStr = m < 10 ? `0${m}` : `${m}`;
+  return `${hStr}:${mStr} ${period}`;
+};
+
+export const getAmPmBreakdown = (session: Session): AmPmBreakdown => {
+  const { h: inH, m: inM } = parseTimeTo24H(session.timeIn);
+  const { h: outH, m: outM } = parseTimeTo24H(session.timeOut);
 
   const hasLunchBreak = (session.breakMinutes || 0) > 0 && inH < 12 && outH >= 13;
 
   if (hasLunchBreak) {
     return {
-      amIn: formatTimeStr(inH, inM),
+      amIn: formatTime12H(inH, inM),
       amOut: '12:00 PM',
       pmIn: '01:00 PM',
-      pmOut: formatTimeStr(outH, outM),
+      pmOut: formatTime12H(outH, outM),
     };
   }
 
   if (inH < 12 && outH <= 12) {
     return {
-      amIn: formatTimeStr(inH, inM),
-      amOut: formatTimeStr(outH, outM),
+      amIn: formatTime12H(inH, inM),
+      amOut: formatTime12H(outH, outM),
       pmIn: '—',
       pmOut: '—',
     };
@@ -52,16 +77,16 @@ export const getAmPmBreakdown = (session: Session): AmPmBreakdown => {
     return {
       amIn: '—',
       amOut: '—',
-      pmIn: formatTimeStr(inH, inM),
-      pmOut: formatTimeStr(outH, outM),
+      pmIn: formatTime12H(inH, inM),
+      pmOut: formatTime12H(outH, outM),
     };
   }
 
   return {
-    amIn: formatTimeStr(inH, inM),
+    amIn: formatTime12H(inH, inM),
     amOut: '12:00 PM',
     pmIn: '12:00 PM',
-    pmOut: formatTimeStr(outH, outM),
+    pmOut: formatTime12H(outH, outM),
   };
 };
 
@@ -100,10 +125,16 @@ export const downloadTextReport = (sessions: Session[], meta: TrackerMeta) => {
   const a = document.createElement('a');
   a.href = url;
   a.download = `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.txt`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+/**
+ * Generates and automatically downloads the Excel (.xlsx) file directly
+ * to the mobile/desktop device storage without Web Share prompts.
+ */
 export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta, options?: ExportOptions) => {
   const workbook = XLSX.utils.book_new();
   const totalHours = getTotalHours(sessions);
@@ -174,15 +205,31 @@ export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta, opti
 
   dtrSheet['!cols'] = [
     { wch: 14 },
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 12 },
-    { wch: 12 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 14 },
     { wch: 10 },
     ...(options?.includeBreaks ? [{ wch: 12 }] : []),
     ...(!options || options.includeRemarks ? [{ wch: 25 }] : []),
   ];
 
   XLSX.utils.book_append_sheet(workbook, dtrSheet, 'DTR Logbook');
-  XLSX.writeFile(workbook, `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+
+  // Generate Excel ArrayBuffer & Blob for mobile-direct device save
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const fileName = `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 };
