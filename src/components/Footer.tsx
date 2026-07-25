@@ -1,27 +1,18 @@
 export const Footer = () => {
   return (
     <footer className="border-t border-[var(--color-border)] py-8 px-4 text-center space-y-4 text-xs text-[var(--color-muted)]">
-      <div className="flex flex-wrap items-center justify-center gap-3 font-semibold">
+      <div className="flex items-center justify-center font-semibold">
         <span>
           Created by{' '}
           <a
-            href="https://github.com/JustJhong609"
+            href="https://www.jhongdev.me/"
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-[var(--color-accent)] hover:underline"
           >
-            Jhong Emata
+            Jhong
           </a>
         </span>
-        <span>•</span>
-        <a
-          href="https://github.com/JustJhong609"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface2)] px-3.5 py-1 text-xs font-bold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] hover:scale-105"
-        >
-          💻 Need a website or app? Contact me on GitHub
-        </a>
       </div>
 
       <p className="max-w-xl mx-auto text-[11px] leading-relaxed text-[var(--color-muted)]">
