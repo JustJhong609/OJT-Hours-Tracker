@@ -1,4 +1,4 @@
-import { differenceInMinutes, format, parse } from 'date-fns';
+import { format, parse } from 'date-fns';
 import type { Session, TrackerMeta } from '../types';
 
 export const formatDisplayTime = (date: Date) => format(date, 'hh:mm a');

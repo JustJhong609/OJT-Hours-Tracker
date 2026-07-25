@@ -1,31 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        parchment: {
-          page: '#f5efe0',
-          card: '#ede4cc',
-          surface: '#e8d9b8',
-          border: '#c4a882',
-          emphasis: '#a07840',
+        brand: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
         },
-        sepia: {
-          950: '#2c1f10',
-          900: '#3b2a14',
-          700: '#7a5c38',
-          500: '#a08050',
+        slateCustom: {
+          850: '#1e293b',
+          950: '#0f172a',
         },
-        amber: '#b87333',
-        sage: '#6b8e4e',
       },
       boxShadow: {
-        paper: '0 16px 40px rgba(92, 61, 30, 0.16)',
+        glow: '0 0 25px -5px rgba(99, 102, 241, 0.4)',
+        glowEmerald: '0 0 25px -5px rgba(16, 185, 129, 0.4)',
+        card: '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+        cardDark: '0 4px 20px -2px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.2)',
       },
       fontFamily: {
-        heading: ['Playfair Display', 'serif'],
-        body: ['Courier Prime', 'IM Fell English', 'serif'],
+        sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
       },
     },
   },
