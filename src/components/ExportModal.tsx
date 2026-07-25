@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { parseISO, startOfWeek, format } from 'date-fns';
 import type { Session, TrackerMeta } from '../types';
-import { downloadExcelReport, type ExportOptions } from '../utils/exportUtils';
+import { downloadExcelReport, getAmPmBreakdown, type ExportOptions } from '../utils/exportUtils';
 import { formatHours, getTotalHours } from '../utils/timeUtils';
 
 interface ExportModalProps {
@@ -76,7 +76,7 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="modern-card w-full max-w-4xl p-6 space-y-6 max-h-[90vh] overflow-hidden flex flex-col"
+        className="modern-card w-full max-w-5xl p-6 space-y-6 max-h-[90vh] overflow-hidden flex flex-col"
       >
         <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
           <div>
@@ -84,7 +84,7 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
               📊 Export to Excel (.xlsx) Preview & Options
             </h2>
             <p className="text-xs text-[var(--color-muted)]">
-              Customize inclusion checklist and inspect live spreadsheet preview before downloading.
+              Includes Morning (AM) & Afternoon (PM) Time In / Time Out columns.
             </p>
           </div>
           <button
@@ -96,7 +96,7 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_1.3fr] flex-1 overflow-hidden min-h-0">
+        <div className="grid gap-6 md:grid-cols-[280px_1fr] flex-1 overflow-hidden min-h-0">
           {/* Left Checklist & Filters Panel */}
           <div className="space-y-4 overflow-y-auto pr-2">
             <div className="space-y-2">
@@ -199,35 +199,44 @@ export const ExportModal = ({ isOpen, onClose, sessions, meta, onToast }: Export
           {/* Right Live Sheet Table Preview Panel */}
           <div className="flex flex-col space-y-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface2)] p-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-              Live Excel Spreadsheet Preview ({filteredSessions.length} rows)
+              Live Spreadsheet Preview ({filteredSessions.length} rows)
             </span>
 
             <div className="flex-1 overflow-auto border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] p-2">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-[var(--color-border)] text-[var(--color-muted)]">
                     <th className="p-2">Date</th>
-                    <th className="p-2">Time In</th>
-                    <th className="p-2">Time Out</th>
+                    <th className="p-2">AM In</th>
+                    <th className="p-2">AM Out</th>
+                    <th className="p-2">PM In</th>
+                    <th className="p-2">PM Out</th>
                     <th className="p-2">Hours</th>
-                    {options.includeBreaks && <th className="p-2">Break (m)</th>}
+                    {options.includeBreaks && <th className="p-2">Break</th>}
                     {options.includeRemarks && <th className="p-2">Remarks</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
-                  {filteredSessions.map((s) => (
-                    <tr key={s.id}>
-                      <td className="p-2 font-mono">{s.date}</td>
-                      <td className="p-2 font-mono">{s.timeIn}</td>
-                      <td className="p-2 font-mono">{s.timeOut}</td>
-                      <td className="p-2 font-bold text-[var(--color-accent)]">{s.hours}h</td>
-                      {options.includeBreaks && <td className="p-2 text-[var(--color-muted)]">{s.breakMinutes ?? 0}m</td>}
-                      {options.includeRemarks && <td className="p-2 truncate max-w-[120px]">{s.remarks || '—'}</td>}
-                    </tr>
-                  ))}
+                  {filteredSessions.map((s) => {
+                    const amPm = getAmPmBreakdown(s);
+                    return (
+                      <tr key={s.id}>
+                        <td className="p-2 font-mono">{s.date}</td>
+                        <td className="p-2 font-mono">{amPm.amIn}</td>
+                        <td className="p-2 font-mono">{amPm.amOut}</td>
+                        <td className="p-2 font-mono">{amPm.pmIn}</td>
+                        <td className="p-2 font-mono">{amPm.pmOut}</td>
+                        <td className="p-2 font-bold text-[var(--color-accent)]">{s.hours}h</td>
+                        {options.includeBreaks && <td className="p-2 text-[var(--color-muted)]">{s.breakMinutes ?? 0}m</td>}
+                        {options.includeRemarks && <td className="p-2 truncate max-w-[120px]">{s.remarks || '—'}</td>}
+                      </tr>
+                    );
+                  })}
                   {options.includeSummaryTotals && (
                     <tr className="font-bold border-t-2 border-[var(--color-border)] bg-[var(--color-surface2)]">
                       <td className="p-2">TOTAL</td>
+                      <td className="p-2">—</td>
+                      <td className="p-2">—</td>
                       <td className="p-2">—</td>
                       <td className="p-2">—</td>
                       <td className="p-2 text-[var(--color-accent)]">{formatHours(totalHours)} hrs</td>

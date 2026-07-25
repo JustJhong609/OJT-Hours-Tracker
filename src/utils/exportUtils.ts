@@ -10,19 +10,77 @@ export interface ExportOptions {
   includeSummaryTotals: boolean;
 }
 
+export interface AmPmBreakdown {
+  amIn: string;
+  amOut: string;
+  pmIn: string;
+  pmOut: string;
+}
+
+export const getAmPmBreakdown = (session: Session): AmPmBreakdown => {
+  const [inH, inM] = session.timeIn.split(':').map(Number);
+  const [outH, outM] = session.timeOut.split(':').map(Number);
+
+  const formatTimeStr = (h: number, m: number) => {
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const displayM = m < 10 ? `0${m}` : `${m}`;
+    return `${displayH < 10 ? '0' + displayH : displayH}:${displayM} ${period}`;
+  };
+
+  const hasLunchBreak = (session.breakMinutes || 0) > 0 && inH < 12 && outH >= 13;
+
+  if (hasLunchBreak) {
+    return {
+      amIn: formatTimeStr(inH, inM),
+      amOut: '12:00 PM',
+      pmIn: '01:00 PM',
+      pmOut: formatTimeStr(outH, outM),
+    };
+  }
+
+  if (inH < 12 && outH <= 12) {
+    return {
+      amIn: formatTimeStr(inH, inM),
+      amOut: formatTimeStr(outH, outM),
+      pmIn: '—',
+      pmOut: '—',
+    };
+  }
+
+  if (inH >= 12 && outH >= 12) {
+    return {
+      amIn: '—',
+      amOut: '—',
+      pmIn: formatTimeStr(inH, inM),
+      pmOut: formatTimeStr(outH, outM),
+    };
+  }
+
+  return {
+    amIn: formatTimeStr(inH, inM),
+    amOut: '12:00 PM',
+    pmIn: '12:00 PM',
+    pmOut: formatTimeStr(outH, outM),
+  };
+};
+
 const buildRows = (sessions: Session[], options?: ExportOptions) =>
   sessions.map((session) => {
+    const amPm = getAmPmBreakdown(session);
     const row: Record<string, string | number | undefined> = {
       Date: session.date,
-      'Time In': session.timeIn,
-      'Time Out': session.timeOut,
+      'AM Time In': amPm.amIn,
+      'AM Time Out': amPm.amOut,
+      'PM Time In': amPm.pmIn,
+      'PM Time Out': amPm.pmOut,
     };
     if (options?.includeBreaks) {
       row['Break (Min)'] = session.breakMinutes || 0;
     }
     row.Hours = formatHours(session.hours);
     if (!options || options.includeRemarks) {
-      row.Remarks = session.remarks;
+      row.Remarks = session.remarks || '';
     }
     return row;
   });
@@ -39,31 +97,30 @@ export const buildTextReport = (sessions: Session[], meta: TrackerMeta) => {
   lines.push(`Required Hours: ${formatHours(meta.requiredHours)}`);
   lines.push(`Generated: ${format(new Date(), 'yyyy-MM-dd hh:mm a')}`);
   lines.push('');
-  lines.push('Date        | Time In   | Time Out  | Hours  | Remarks');
-  lines.push('-----------------------------------------------------------------------');
+  lines.push('Date        | AM In    | AM Out   | PM In    | PM Out   | Hours  | Remarks');
+  lines.push('-------------------------------------------------------------------------------');
 
   sessions.forEach((session) => {
+    const amPm = getAmPmBreakdown(session);
     lines.push(
-      `${session.date.padEnd(11)} | ${session.timeIn.padEnd(9)} | ${session.timeOut.padEnd(9)} | ${formatHours(session.hours).padEnd(6)} | ${session.remarks || '—'}`
+      `${session.date.padEnd(11)} | ${amPm.amIn.padEnd(8)} | ${amPm.amOut.padEnd(8)} | ${amPm.pmIn.padEnd(8)} | ${amPm.pmOut.padEnd(8)} | ${formatHours(session.hours).padEnd(6)} | ${session.remarks || '—'}`
     );
   });
 
-  lines.push('-----------------------------------------------------------------------');
-  lines.push(`Total Hours: ${formatHours(totalHours)}`);
-  lines.push(`Hours Left: ${formatHours(hoursLeft)}`);
+  lines.push('-------------------------------------------------------------------------------');
+  lines.push(`Total Rendered: ${formatHours(totalHours)} hrs | Remaining: ${formatHours(hoursLeft)} hrs`);
 
   return lines.join('\n');
 };
 
 export const downloadTextReport = (sessions: Session[], meta: TrackerMeta) => {
-  const content = buildTextReport(sessions, meta);
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-  const link = document.createElement('a');
+  const text = buildTextReport(sessions, meta);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-
-  link.href = url;
-  link.download = `ojt-logbook-${format(new Date(), 'yyyyMMdd-HHmm')}.txt`;
-  link.click();
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.txt`;
+  a.click();
   URL.revokeObjectURL(url);
 };
 
@@ -85,7 +142,7 @@ export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta, opti
 
   summaryRows.push(
     ['Required Hours', formatHours(meta.requiredHours)],
-    ['Total Hours', formatHours(totalHours)],
+    ['Total Hours Rendered', formatHours(totalHours)],
     []
   );
 
@@ -124,12 +181,6 @@ export const downloadExcelReport = (sessions: Session[], meta: TrackerMeta, opti
 
   XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
   XLSX.utils.book_append_sheet(workbook, sessionSheet, 'Sessions');
-  XLSX.writeFile(workbook, `ojt-logbook-${format(new Date(), 'yyyyMMdd-HHmm')}.xlsx`);
-};
 
-export const downloadCsvReport = (sessions: Session[], meta: TrackerMeta) => {
-  const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.json_to_sheet(buildRows(sessions));
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Sessions');
-  XLSX.writeFile(workbook, `ojt-logbook-${meta.name ? meta.name.toLowerCase().replace(/\s+/g, '-') : 'export'}.csv`);
+  XLSX.writeFile(workbook, `ojt-logbook-dtr-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
 };
