@@ -101,6 +101,17 @@ export const LandingPage = ({ onOpenAuth }: LandingPageProps) => {
           </div>
         </div>
 
+        {/* Download App Link */}
+        <div className="flex justify-center -mt-10">
+          <motion.a
+            whileTap={{ scale: 0.96 }}
+            href="https://github.com/JustJhong609/OJT-Hours-Tracker/releases/download/v1.0.1/v1.0.1.OJT.Tracker.apk"
+            className="btn-primary text-sm font-bold px-6 py-3 text-white shadow-glow"
+          >
+            📱 Download the app here
+          </motion.a>
+        </div>
+
         {/* Feature Cards Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="modern-card p-6 space-y-3">
